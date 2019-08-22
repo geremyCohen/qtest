@@ -33,6 +33,8 @@ var receiveMessage = function() {
       if (Array.isArray(data.Messages)) {
         data.Messages.forEach(function(message) {
 
+          var ts = new Date().getTime();
+
           var body = JSON.parse(message.Body);
           var tt = body.taskToken;
           var handle = message.ReceiptHandle;
@@ -43,12 +45,12 @@ var receiveMessage = function() {
             taskToken: tt
           };
 
-          var ts = new Date().getTime();
-          console.log("receivedFromSQS: " + opName + " ", ts);
 
           if (lastTime > 0) {
             console.log("\nTime since last token callback: ", ts - lastTime);
           }
+
+          console.log("receivedFromSQS: " + opName + " ", ts);
 
           callbackToken(successParams, opName);
 
