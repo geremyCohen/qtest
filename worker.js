@@ -50,8 +50,8 @@ var receiveMessage = function(){
         ReceiptHandle: handle
       };
 
-  deleteMessage(deleteParams);
   receiveMessage();
+  deleteMessage(deleteParams);
 
             })
 
@@ -60,7 +60,7 @@ var receiveMessage = function(){
 }
 
 
-function sendSuccess(params){
+var sendSuccess = function(successParams){
                   console.log(`Calling Step Functions to complete callback task with params ${JSON.stringify(params)}`);
 
         stepfunctions.sendTaskSuccess(params, (err, data) => {
@@ -73,7 +73,7 @@ function sendSuccess(params){
 
 }
 
-function deleteMessage(deleteParams){
+var deleteMessage = function(deleteParams){
 
 
         sqs.deleteMessage(deleteParams, function(err, data) {
