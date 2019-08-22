@@ -61,9 +61,9 @@ var receiveMessage = function(){
 
 
 var sendSuccess = function(successParams){
-                  console.log(`Calling Step Functions to complete callback task with params ${JSON.stringify(params)}`);
+                  console.log(`Calling Step Functions to complete callback task with params ${JSON.stringify(successParams)}`);
 
-        stepfunctions.sendTaskSuccess(params, (err, data) => {
+        stepfunctions.sendTaskSuccess(successParams, (err, data) => {
                       if (err) {
                           console.error(err.message);
                           return;
