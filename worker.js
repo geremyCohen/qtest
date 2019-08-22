@@ -29,21 +29,26 @@ var receiveMessage = function(){
       console.log("Error", err);
     } else {
 
+            if (Array.isArray(data.Messages)){
             data.Messages.forEach(function(message){
 
                     var body = JSON.parse(message.Body);
                     var tt = body.taskToken;
                     var handle = message.ReceiptHandle;
+                    var opName = body.opName;
 
-                    console.log("RH: ", handle);
-                    console.log("\nReceived TT: ", tt);
+                    // console.log("body: ", body.opName);
+                    // console.log("\nReceived TT: ", tt);
 
                     var successParams = {
                         output: "\"Received Message.\"",
                         taskToken: tt
                     };
 
-  sendSuccess(successParams);
+                    var ts = process.hrtime();
+                    console.log("receivedFromSQS: " + opName + " ", ts);
+
+  sendSuccess(successParams, opName);
 
       var deleteParams = {
         QueueUrl: SQS_QUEUE_URL,
@@ -51,36 +56,45 @@ var receiveMessage = function(){
       };
 
   receiveMessage();
-  deleteMessage(deleteParams);
+  deleteMessage(deleteParams, opName);
 
             })
 
     }
+
+    receiveMessage();
+
+  }
   });
 }
 
 
-var sendSuccess = function(successParams){
-                  console.log(`Calling Step Functions to complete callback task with params ${JSON.stringify(successParams)}`);
+var sendSuccess = function(successParams, opName){
+                  //console.log(`Calling Step Functions to complete callback task with params ${JSON.stringify(successParams)}`);
 
         stepfunctions.sendTaskSuccess(successParams, (err, data) => {
                       if (err) {
                           console.error(err.message);
                           return;
                       }
-                      console.log(data);
+                      //console.log(data);
+                      var ts = process.hrtime();
+                      console.log("tokenCallbackToStepFunc: " + opName + " ", ts);
                   });
 
 }
 
-var deleteMessage = function(deleteParams){
+var deleteMessage = function(deleteParams, opName){
 
 
         sqs.deleteMessage(deleteParams, function(err, data) {
       if (err) {
         console.log("Delete Error", err);
       } else {
-        console.log("Message Deleted", data);
+
+        //var ts = process.hrtime();
+        //console.log("deleteFromSQS: " + opName + " ", ts);
+        //console.log("Message Deleted", data);
       }
     });
 
