@@ -10,7 +10,7 @@ var stepfunctions = new AWS.StepFunctions();
 
 var SQS_QUEUE_URL="https://sqs.us-east-1.amazonaws.com/351853917711/gec-test-q-node-worker";
 
-var params = {
+var SQSParams = {
  AttributeNames: [
     "SentTimestamp"
  ],
@@ -21,6 +21,44 @@ var params = {
  QueueUrl: SQS_QUEUE_URL,
  WaitTimeSeconds: 20
 };
+
+
+var receiveMessage = function(){
+  sqs.receiveMessage(SQSParams, function(err, data) {
+    if (err) {
+      console.log("Error", err);
+    } else {
+
+            data.Messages.forEach(function(message){
+
+                    var body = JSON.parse(message.Body);
+                    var tt = body.taskToken;
+                    var handle = message.ReceiptHandle;
+
+                    console.log("RH: ", handle);
+                    console.log("\nReceived TT: ", tt);
+
+                    var successParams = {
+                        output: "\"Received Message.\"",
+                        taskToken: tt
+                    };
+
+  sendSuccess(successParams);
+
+      var deleteParams = {
+        QueueUrl: SQS_QUEUE_URL,
+        ReceiptHandle: handle
+      };
+
+  deleteMessage(deleteParams);
+  receiveMessage();
+
+            })
+
+    }
+  });
+}
+
 
 function sendSuccess(params){
                   console.log(`Calling Step Functions to complete callback task with params ${JSON.stringify(params)}`);
@@ -48,40 +86,4 @@ function deleteMessage(deleteParams){
 
 }
 
-
-sqs.receiveMessage(params, function(err, data) {
-  if (err) {
-    console.log("Error", err);
-  } else {
-
-          data.Messages.forEach(function(message){
-
-
-
-                  var body = JSON.parse(message.Body);
-                  var tt = body.taskToken;
-                  var handle = message.ReceiptHandle;
-
-                  console.log("RH: ", handle);
-                  console.log("\nReceived TT: ", tt);
-
-
-                  var params = {
-                      output: "\"Received Message.\"",
-                      taskToken: tt
-                  };
-
-sendSuccess(params);
-
-    var deleteParams = {
-      QueueUrl: SQS_QUEUE_URL,
-      ReceiptHandle: handle
-    };
-
-deleteMessage(deleteParams);
-
-
-          })
-
-  }
-});
+receiveMessage()
