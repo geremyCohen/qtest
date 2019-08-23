@@ -11,6 +11,8 @@ var stepfunctions = new AWS.StepFunctions();
 var SQS_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/351853917711/gec-test-q-node-worker";
 
 var lastTime = 0;
+var jobStart = 0;
+var jobEnd = 0;
 
 var SQSParams = {
   AttributeNames: [
@@ -39,6 +41,10 @@ var receiveMessage = function() {
           var tt = body.taskToken;
           var handle = message.ReceiptHandle;
           var opName = body.opName;
+
+          if (opName == "DummyLoadOp1") {
+            jobStart = ts;
+          }
 
           var successParams = {
             output: "\"Received Message.\"",
@@ -83,6 +89,11 @@ var callbackToken = function(successParams, opName) {
     console.log("tokenCallbackToStepFunc: " + opName + " ", ts);
 
     lastTime = ts;
+
+    if (opName == "FinalOp") {
+      jobEnd = ts;
+      console.log("\n\nJob Ended in : " + (jobEnd - jobStart) + "ms.");
+    }
   });
 }
 
