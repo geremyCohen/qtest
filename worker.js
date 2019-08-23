@@ -1,4 +1,5 @@
 var AWS = require('aws-sdk');
+const path = require('path');
 
 AWS.config.update({
   region: 'us-east-1'
@@ -8,7 +9,11 @@ var sqs = new AWS.SQS({
 });
 var stepfunctions = new AWS.StepFunctions();
 
-var SQS_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/351853917711/gec-test-q-node-worker";
+if (process.argv.length != 3) {
+  console.log("\nusage: node " + path.basename(process.argv[1]) + " SQS_QUEUE_URL\n");
+  return;
+}
+var SQS_QUEUE_URL = process.argv[2];
 
 var lastTime = 0;
 var jobStart = 0;
@@ -31,6 +36,8 @@ var receiveMessage = function() {
     if (err) {
       console.log("Error", err);
     } else {
+
+      receiveMessage(); // initiate receiving / processing the next message potentially even before stepfunctions.sendTaskSuccess returns
 
       if (Array.isArray(data.Messages)) {
         data.Messages.forEach(function(message) {
@@ -64,14 +71,9 @@ var receiveMessage = function() {
             QueueUrl: SQS_QUEUE_URL,
             ReceiptHandle: handle
           };
-
-          receiveMessage();
           deleteMessage(deleteParams, opName);
-
         })
       }
-
-      receiveMessage();
     }
   });
 }
